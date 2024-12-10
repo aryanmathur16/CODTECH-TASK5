@@ -1,0 +1,201 @@
+class User:
+    def __init__(self, user_id, name, email):
+        self.user_id = user_id
+        self.name = name
+        self.email = email
+        self.friends = set()  # Set to store friend IDs
+        self.messages = {}  # Dictionary to store messages between users
+        self.friend_requests = set()  # Set to store incoming friend requests
+
+    def __str__(self):
+        return f"User ID: {self.user_id}, Name: {self.name}, Email: {self.email}"
+
+    def add_friend(self, user):
+        self.friends.add(user.user_id)
+        user.friends.add(self.user_id)
+        print(f"{self.name} and {user.name} are now friends.")
+
+    def send_message(self, recipient, message):
+        if recipient.user_id not in self.messages:
+            self.messages[recipient.user_id] = []
+        self.messages[recipient.user_id].append((self.user_id, message))
+        print(f"Message sent to {recipient.name}: {message}")
+
+    def receive_messages(self):
+        if self.user_id in self.messages:
+            print("\nYour Messages:")
+            for sender_id, message in self.messages[self.user_id]:
+                print(f"From User ID {sender_id}: {message}")
+        else:
+            print("No new messages.")
+
+    def send_friend_request(self, recipient):
+        if recipient.user_id not in self.friends and recipient.user_id != self.user_id:
+            recipient.friend_requests.add(self.user_id)
+            print(f"Friend request sent to {recipient.name}.")
+        else:
+            print("You are already friends or cannot send a request to yourself.")
+
+    def accept_friend_request(self, requester):
+        if self.user_id in self.friend_requests:
+            self.add_friend(requester)
+            self.friend_requests.remove(requester.user_id)
+        else:
+            print(f"No friend request from {requester.name}.")
+
+    def update_profile(self, name=None, email=None):
+        if name:
+            self.name = name
+        if email:
+            self.email = email
+        print(f"Profile updated: {self.name}, {self.email}")
+
+class SocialMediaPlatform:
+    def __init__(self):
+        self.users = {}
+        self.logged_in_user = None
+
+    def register(self, name, email):
+        user_id = len(self.users) + 1  # Create a unique user ID
+        new_user = User(user_id, name, email)
+        self.users[user_id] = new_user
+        print(f"User {name} registered successfully with ID {user_id}.")
+
+    def login(self, user_id):
+        if user_id in self.users:
+            self.logged_in_user = self.users[user_id]
+            print(f"Welcome, {self.logged_in_user.name}!")
+        else:
+            print("Invalid user ID.")
+
+    def logout(self):
+        if self.logged_in_user:
+            print(f"Goodbye, {self.logged_in_user.name}.")
+            self.logged_in_user = None
+        else:
+            print("No user logged in.")
+
+    def display_profile(self):
+        if self.logged_in_user:
+            print(f"Profile of {self.logged_in_user.name}:")
+            print(self.logged_in_user)
+        else:
+            print("No user logged in.")
+
+    def show_friend_requests(self):
+        if self.logged_in_user:
+            if self.logged_in_user.friend_requests:
+                print(f"Friend requests for {self.logged_in_user.name}:")
+                for requester_id in self.logged_in_user.friend_requests:
+                    requester = self.users[requester_id]
+                    print(f"- {requester.name}")
+            else:
+                print(f"No friend requests for {self.logged_in_user.name}.")
+        else:
+            print("No user logged in.")
+
+    def send_message(self, recipient_id, message):
+        if self.logged_in_user:
+            if recipient_id in self.users:
+                recipient = self.users[recipient_id]
+                self.logged_in_user.send_message(recipient, message)
+            else:
+                print("Invalid recipient ID.")
+        else:
+            print("No user logged in.")
+
+    def send_friend_request(self, recipient_id):
+        if self.logged_in_user:
+            if recipient_id in self.users:
+                recipient = self.users[recipient_id]
+                self.logged_in_user.send_friend_request(recipient)
+            else:
+                print("Invalid recipient ID.")
+        else:
+            print("No user logged in.")
+
+    def accept_friend_request(self, requester_id):
+        if self.logged_in_user:
+            if requester_id in self.users:
+                requester = self.users[requester_id]
+                self.logged_in_user.accept_friend_request(requester)
+            else:
+                print("Invalid requester ID.")
+        else:
+            print("No user logged in.")
+
+def main():
+    platform = SocialMediaPlatform()
+
+    while True:
+        print("\nSocial Media Platform")
+        print("1. Register")
+        print("2. Login")
+        print("3. Logout")
+        print("4. Display Profile")
+        print("5. Send Message")
+        print("6. Send Friend Request")
+        print("7. Accept Friend Request")
+        print("8. View Friend Requests")
+        print("9. Update Profile")
+        print("10. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            name = input("Enter your name: ")
+            email = input("Enter your email: ")
+            platform.register(name, email)
+
+        elif choice == '2':
+            user_id = int(input("Enter your user ID to login: "))
+            platform.login(user_id)
+
+        elif choice == '3':
+            platform.logout()
+
+        elif choice == '4':
+            platform.display_profile()
+
+        elif choice == '5':
+            if platform.logged_in_user:
+                recipient_id = int(input("Enter recipient user ID: "))
+                message = input("Enter your message: ")
+                platform.send_message(recipient_id, message)
+            else:
+                print("You must be logged in to send a message.")
+
+        elif choice == '6':
+            if platform.logged_in_user:
+                recipient_id = int(input("Enter recipient user ID to send a friend request: "))
+                platform.send_friend_request(recipient_id)
+            else:
+                print("You must be logged in to send a friend request.")
+
+        elif choice == '7':
+            if platform.logged_in_user:
+                requester_id = int(input("Enter requester user ID to accept the friend request: "))
+                platform.accept_friend_request(requester_id)
+            else:
+                print("You must be logged in to accept friend requests.")
+
+        elif choice == '8':
+            platform.show_friend_requests()
+
+        elif choice == '9':
+            if platform.logged_in_user:
+                name = input("Enter new name (or press Enter to skip): ")
+                email = input("Enter new email (or press Enter to skip): ")
+                platform.logged_in_user.update_profile(name if name else None, email if email else None)
+            else:
+                print("You must be logged in to update your profile.")
+
+        elif choice == '10':
+            print("Exiting the platform. Goodbye!")
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
